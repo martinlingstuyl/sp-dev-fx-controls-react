@@ -31,6 +31,7 @@ import "@pnp/sp/lists";
 import "@pnp/sp/content-types";
 import "@pnp/sp/folders";
 import "@pnp/sp/items";
+import { IFolder } from "@pnp/sp/folders";
 import { IInstalledLanguageInfo } from "@pnp/sp/presets/all";
 import { cloneDeep, isEqual } from "lodash";
 import { ICustomFormatting, ICustomFormattingBodySection, ICustomFormattingNode } from "../../common/utilities/ICustomFormatting";
@@ -605,11 +606,12 @@ export class DynamicForm extends React.Component<
                 /["|*|:|<|>|?|/|\\||]/g,
                 "_"
               ) // Replace not allowed chars in folder name
-              : ""; // Empty string will be replaced by SPO with Folder Item ID
-          const newFolder = await library.rootFolder.addSubFolderUsingPath(
-            folderTitle
-          );
+              : ""; // Empty string will be replaced by SPO with Folder Item ID              
+          
+          const folder = !this.props.folderPath ? library.rootFolder : await this.getFolderByPath(this.props.folderPath, library.rootFolder);          
+          const newFolder = await folder.addSubFolderUsingPath( folderTitle );
           const fields = await newFolder.listItemAllFields();
+          
           if (fields[idField]) {
             // Read the ID of the just created folder or Document Set
             const folderId = fields[idField];
@@ -683,8 +685,9 @@ export class DynamicForm extends React.Component<
                 "_"
               ) // Replace not allowed chars in folder name
               : ""; // Empty string will be replaced by SPO with Folder Item ID
-
-          const fileCreatedResult = await library.rootFolder.files.addChunked(encodeURI(itemTitle), await selectedFile.downloadFileContent());
+          
+          const folder = !this.props.folderPath ? library.rootFolder : await this.getFolderByPath(this.props.folderPath, library.rootFolder);          
+          const fileCreatedResult = await folder.files.addChunked(encodeURI(itemTitle), await selectedFile.downloadFileContent());
           const fields = await fileCreatedResult.file.listItemAllFields();
 
           if (fields[idField]) {
@@ -1476,4 +1479,9 @@ export class DynamicForm extends React.Component<
     }
   }
 
+  private getFolderByPath = async (listRelativeFolderPath: string, rootFolder: IFolder): Promise<IFolder> => {
+    const libraryFolder = await rootFolder();
+    const folder = sp.web.getFolderByServerRelativePath(`${libraryFolder.ServerRelativeUrl}/${listRelativeFolderPath}`);
+    return folder;
+  };
 }
