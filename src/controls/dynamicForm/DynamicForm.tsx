@@ -55,7 +55,7 @@ const stackTokens: IStackTokens = { childrenGap: 20 };
 export class DynamicForm extends React.Component<
   IDynamicFormProps,
   IDynamicFormState
-> {
+> {  
   private _spService: SPservice;
   private _formulaEvaluation: FormulaEvaluation;
   private _customFormatter: CustomFormattingHelper;
@@ -595,21 +595,13 @@ export class DynamicForm extends React.Component<
       else if (contentTypeId.startsWith("0x0120")) {
         // We are adding a folder or a Document Set
         try {
-          const idField = "ID";
-          const titleField = "Title";
+          const idField = "ID";          
           const contentTypeIdField = "ContentTypeId";
 
           const library = await sp.web.lists.getById(listId);
-          const folderTitle =
-            objects[titleField] !== undefined && objects[titleField] !== ""
-              ? (objects[titleField] as string).replace(
-                /["|*|:|<|>|?|/|\\||]/g,
-                "_"
-              ) // Replace not allowed chars in folder name
-              : ""; // Empty string will be replaced by SPO with Folder Item ID              
-          
+          const folderFileName = this.getFolderName(objects);
           const folder = !this.props.folderPath ? library.rootFolder : await this.getFolderByPath(this.props.folderPath, library.rootFolder);          
-          const newFolder = await folder.addSubFolderUsingPath( folderTitle );
+          const newFolder = await folder.addSubFolderUsingPath( folderFileName );
           const fields = await newFolder.listItemAllFields();
           
           if (fields[idField]) {
@@ -683,7 +675,7 @@ export class DynamicForm extends React.Component<
               ? (selectedFile.fileName as string).replace(
                 /["|*|:|<|>|?|/|\\||]/g,
                 "_"
-              ) // Replace not allowed chars in folder name
+              ).trim() // Replace not allowed chars in folder name and trim empty spaces at the start or end.
               : ""; // Empty string will be replaced by SPO with Folder Item ID
           
           const folder = !this.props.folderPath ? library.rootFolder : await this.getFolderByPath(this.props.folderPath, library.rootFolder);          
@@ -691,13 +683,13 @@ export class DynamicForm extends React.Component<
           const fields = await fileCreatedResult.file.listItemAllFields();
 
           if (fields[idField]) {
-            // Read the ID of the just created folder or Document Set
-            const folderId = fields[idField];
+            // Read the ID of the just created file
+            const fileId = fields[idField];
 
             // Set the content type ID for the target item
             objects[contentTypeIdField] = contentTypeId;
-            // Update the just created folder or Document Set
-            const iur = await library.items.getById(folderId).update(objects);
+            // Update the just created file
+            const iur = await library.items.getById(fileId).update(objects);
             if (onSubmitted) {
               onSubmitted(
                 iur.data,
@@ -708,7 +700,7 @@ export class DynamicForm extends React.Component<
             }
           } else {
             throw new Error(
-              "Unable to read the ID of the just created folder or Document Set"
+              "Unable to read the ID of the just created file"
             );
           }
         } catch (error) {
@@ -993,9 +985,17 @@ export class DynamicForm extends React.Component<
       // Load SharePoint list item
       const spList = sp.web.lists.getById(listId);
       let item = null;
+      const isEditingItem = listItemId !== undefined && listItemId !== null && listItemId !== 0;
       let etag: string | undefined = undefined;
-      if (listItemId !== undefined && listItemId !== null && listItemId !== 0) {
-        item = await spList.items.getById(listItemId).get().catch(err => this.updateFormMessages(MessageBarType.error, err.message));
+
+      if (isEditingItem) {                
+        const spListItem = spList.items.getById(listItemId);
+        
+        if (contentTypeId.startsWith("0x0120") || contentTypeId.startsWith("0x0101")) { 
+          spListItem.select("*","FileLeafRef"); // Explainer: FileLeafRef is not loaded by default. Load it to show the file/folder name in the field.
+        }
+        
+        item = await spListItem.get().catch(err => this.updateFormMessages(MessageBarType.error, err.message));
 
         if (onListItemLoaded) {
           await onListItemLoaded(item);
@@ -1291,7 +1291,7 @@ export class DynamicForm extends React.Component<
             if (defaultValue !== undefined && defaultValue !== null) defaultValue = Boolean(Number(defaultValue));
             if (value !== undefined && value !== null) value = Boolean(Number(value));
           }
-  
+
           tempFields.push({
             value,
             newValue: undefined,
@@ -1484,4 +1484,25 @@ export class DynamicForm extends React.Component<
     const folder = sp.web.getFolderByServerRelativePath(`${libraryFolder.ServerRelativeUrl}/${listRelativeFolderPath}`);
     return folder;
   };
+  
+  /**
+   * Creates a folder name based on the FileLeafRef field (if rendered) or the Title field (if rendered)
+   * Replaces not allowed chars in folder name and trims spaces at the start and end of the string
+   * Empty string will be replaced by SPO with Folder Item ID
+   * @param objects The object containing the field values
+   * @returns the folder name
+   */
+  private getFolderName = (objects: {}): string => {
+    const titleField = "Title";
+    const fileLeafRefField = "FileLeafRef";
+    let folderNameValue = "";
+
+    if (objects[fileLeafRefField] !== undefined && objects[fileLeafRefField] !== "")
+      folderNameValue = objects[fileLeafRefField] as string;
+    
+    if (objects[titleField] !== undefined && objects[titleField] !== "")
+      folderNameValue = objects[titleField] as string;
+
+    return folderNameValue.replace(/["|*|:|<|>|?|/|\\||]/g, "_").trim();
+  }
 }
