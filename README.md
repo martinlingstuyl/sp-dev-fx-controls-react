@@ -1,5 +1,7 @@
 # SharePoint Framework React Controls
 
+> This package is a fork of the @pnp/spfx-controls-react package, created to use certain features that were not yet released.
+
 This is a open source library that shares a set of reusable React control that can be used in your SharePoint Framework solutions.
 
 > If you are looking for web part property controls, please check following repository for those - [https://github.com/pnp/sp-dev-fx-property-controls](https://github.com/pnp/sp-dev-fx-property-controls)

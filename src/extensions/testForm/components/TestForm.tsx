@@ -39,8 +39,11 @@ export default class TestForm extends React.Component<ITestFormProps, ITestFormS
       <EnhancedThemeProvider applyTo="element" context={this.props.context}>
         <DynamicForm
           context={this.props.context}
+          contentTypeId='0x0120D52000796BC7FCC8B819488729FB2B77B0E799002B2379630DCCB04D883603B763E843D7'
           listId={this.props.context.list.guid.toString()}
           listItemId={this.props.context.itemId}
+          // hiddenFields={['FileLeafRef']}
+          // folderPath='A regular folder/Test'
           onListItemLoaded={async (listItemData: any) => { // eslint-disable-line @typescript-eslint/no-explicit-any
             console.log(listItemData);
           }} />

@@ -26,6 +26,29 @@
         }
       }
     },
+    "testForm_NewForm_blimped": {
+      "pageUrl": "https://blimped.sharepoint.com/sites/Learning/_layouts/15/SPListForm.aspx?List=2e3fed60-4157-479c-8d02-d45efbe64b1b&ContentTypeId=0x0120D52000796BC7FCC8B819488729FB2B77B0E799002B2379630DCCB04D883603B763E843D7",
+      "formCustomizer": {
+        "componentId": "f9c6b930-8d5d-4550-bfd9-ed5f6ca443a8",
+        "PageType": 8,
+        "RootFolder": "/sites/Learning/DocLibraryWithDocSets",
+        "properties": {
+          "sampleText": "Value"
+        }
+      }
+    },
+    "testForm_EditForm_blimped": {
+      "pageUrl": "https://blimped.sharepoint.com/sites/Learning/_layouts/15/SPListForm.aspx?List=2e3fed60-4157-479c-8d02-d45efbe64b1b&ContentTypeId=0x0120D52000796BC7FCC8B819488729FB2B77B0E799002B2379630DCCB04D883603B763E843D7",
+      "formCustomizer": {
+        "componentId": "f9c6b930-8d5d-4550-bfd9-ed5f6ca443a8",
+        "PageType": 8,
+        "ID": 44,
+        "RootFolder": "/sites/Learning/DocLibraryWithDocSets",
+        "properties": {
+          "sampleText": "Value"
+        }
+      }
+    },
     "testForm_EditForm": {
       "pageUrl": "https://enter-your-SharePoint-site.sharepoint.com/sites/mySite/_layouts/15/SPListForm.aspx",
       "formCustomizer": {
