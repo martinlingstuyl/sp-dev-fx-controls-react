@@ -1478,10 +1478,26 @@ export class DynamicForm extends React.Component<
         return 'Document';
     }
   }
-
-  private getFolderByPath = async (listRelativeFolderPath: string, rootFolder: IFolder): Promise<IFolder> => {
+  
+  /**
+   * Returns a pnp/sp folder object based on the folderPath and the library the folder is in.
+   * The folderPath can be a server relative path, but should be in the same library.
+   * @param folderPath The path to the folder coming from the component properties
+   * @param rootFolder The rootFolder object of the library
+   * @returns 
+   */
+  private getFolderByPath = async (folderPath: string, rootFolder: IFolder): Promise<IFolder> => {
     const libraryFolder = await rootFolder();
-    const folder = sp.web.getFolderByServerRelativePath(`${libraryFolder.ServerRelativeUrl}/${listRelativeFolderPath}`);
+    const normalizedFolderPath = decodeURIComponent(folderPath).toLowerCase().replace(/\/$/, "");
+    const serverRelativeLibraryPath = libraryFolder.ServerRelativeUrl.toLowerCase().replace(/\/$/, "");
+
+    // In case of a server relative path in the same library, return the folder
+    if (`${normalizedFolderPath}/`.startsWith(`${serverRelativeLibraryPath}/`)) {
+      return sp.web.getFolderByServerRelativePath(normalizedFolderPath);
+    }
+    
+    // In other cases, expect a list-relative path and return the folder
+    const folder = sp.web.getFolderByServerRelativePath(`${serverRelativeLibraryPath}/${normalizedFolderPath}`);
     return folder;
   };
   
