@@ -1536,7 +1536,7 @@ export class DynamicForm extends React.Component<
    */
   private updateListItemRetry = async (list: IList, itemId: number, objects: {}, retry: number = 0): Promise<IItemUpdateResult> => {
     try {
-      return await list.items.getById(itemId).update(objects, "1");
+      return await list.items.getById(itemId).update(objects);
     }
     catch (error)
     {      
